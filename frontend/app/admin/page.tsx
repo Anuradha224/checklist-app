@@ -127,6 +127,7 @@ export default function AdminPage(){
           {[['⚙','bench','#F3F4F6','#374151'],['+ Employee','addEmp','#F3F4F6','#374151'],['🔐','changeAdminPw','#EEF2FF','#4F46E5']].map(([l,m,bg,c])=>(
             <button key={m} onClick={()=>setModal(m)} style={{padding:'7px 12px',borderRadius:99,border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:600,fontFamily:'var(--font)',background:bg,color:c}}>{l}</button>
           ))}
+          <button onClick={()=>router.push('/admin/bulk-tasks')} style={{padding:'7px 14px',borderRadius:99,border:'1.5px solid #7C3AED',background:'rgba(124,58,237,0.08)',color:'#7C3AED',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)'}}>⚡ Bulk Add Tasks</button>
           <button onClick={()=>setModal('addTask')} style={{padding:'7px 14px',borderRadius:99,border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)',background:'linear-gradient(135deg,#4F46E5,#7C3AED)',color:'#fff',boxShadow:'0 3px 12px rgba(79,70,229,0.35)'}}>+ Task</button>
           <button onClick={logout} style={{padding:'7px 12px',borderRadius:99,border:'1.5px solid #E5E7EB',background:'transparent',cursor:'pointer',fontSize:'0.78rem',fontFamily:'var(--font)',color:'#9CA3AF'}}>Sign out</button>
         </div>
