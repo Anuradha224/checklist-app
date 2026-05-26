@@ -23,6 +23,7 @@ export default function AdminPage(){
   const [bench,setBench]=useState(0)
   const [loading,setLoading]=useState(true)
   const [search,setSearch]=useState('')
+  const [empSearch,setEmpSearch]=useState('')
   const [taskFilterEmp,setTaskFilterEmp]=useState('all')
   const [taskFilterFreq,setTaskFilterFreq]=useState('all')
   const [taskSearch,setTaskSearch]=useState('')
@@ -203,7 +204,36 @@ export default function AdminPage(){
           ))}
         </div>
 
-        {/* KPI Table */}
+        {/* Employee score cards */}
+        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#9CA3AF',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:10}}>Employee Scorecards</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:12}}>
+          {filteredRows.map((row:any,i:number)=>(
+            <div key={row.employee.id} className="card" style={{padding:'1rem',cursor:'pointer',transition:'transform 0.15s'}}
+              onMouseEnter={(e:any)=>e.currentTarget.style.transform='translateY(-2px)'}
+              onMouseLeave={(e:any)=>e.currentTarget.style.transform='translateY(0)'}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+                <div style={{width:38,height:38,borderRadius:'50%',background:EMP_GRADS[i%EMP_GRADS.length],display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:800,color:'#fff'}}>{row.employee.name.slice(0,2)}</div>
+                <div>
+                  <div style={{fontWeight:700,fontSize:'0.875rem'}}>{row.employee.name}</div>
+                  {row.employee.role&&<div style={{fontSize:'0.68rem',color:'#9CA3AF'}}>{row.employee.role}</div>}
+                </div>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
+                {[['Not done',row.currentWeek.score1,`${row.currentWeek.planned}p·${row.currentWeek.done}d`],
+                  ['Not on time',row.currentWeek.score2,`${row.currentWeek.doneOnTime} on time`]].map(([lbl,val,sub]:any)=>(
+                  <div key={lbl} style={{background:'#F8F9FF',borderRadius:10,padding:'8px'}}>
+                    <div style={{fontSize:'0.62rem',color:'#9CA3AF',fontWeight:600,marginBottom:2}}>{lbl}</div>
+                    <div style={{fontFamily:'var(--mono)',fontWeight:800,fontSize:'1.1rem',color:sc(val)}}>{val.toFixed(2)}</div>
+                    <div style={{fontSize:'0.6rem',color:'#9CA3AF',marginTop:1}}>{sub}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>}
+
+                {/* KPI Table */}
         <div style={{fontSize:'0.72rem',fontWeight:700,color:'#9CA3AF',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:8}}>
           Current Week Score {search&&`— ${filteredRows.length} result${filteredRows.length!==1?'s':''}`}
         </div>
@@ -268,50 +298,71 @@ export default function AdminPage(){
           </div>
         </div>
 
-        {/* Employee score cards */}
-        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#9CA3AF',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:10}}>Employee Scorecards</div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:12}}>
-          {filteredRows.map((row:any,i:number)=>(
-            <div key={row.employee.id} className="card" style={{padding:'1rem',cursor:'pointer',transition:'transform 0.15s'}}
-              onMouseEnter={(e:any)=>e.currentTarget.style.transform='translateY(-2px)'}
-              onMouseLeave={(e:any)=>e.currentTarget.style.transform='translateY(0)'}>
-              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
-                <div style={{width:38,height:38,borderRadius:'50%',background:EMP_GRADS[i%EMP_GRADS.length],display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:800,color:'#fff'}}>{row.employee.name.slice(0,2)}</div>
-                <div>
-                  <div style={{fontWeight:700,fontSize:'0.875rem'}}>{row.employee.name}</div>
-                  {row.employee.role&&<div style={{fontSize:'0.68rem',color:'#9CA3AF'}}>{row.employee.role}</div>}
-                </div>
-              </div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
-                {[['Not done',row.currentWeek.score1,`${row.currentWeek.planned}p·${row.currentWeek.done}d`],
-                  ['Not on time',row.currentWeek.score2,`${row.currentWeek.doneOnTime} on time`]].map(([lbl,val,sub]:any)=>(
-                  <div key={lbl} style={{background:'#F8F9FF',borderRadius:10,padding:'8px'}}>
-                    <div style={{fontSize:'0.62rem',color:'#9CA3AF',fontWeight:600,marginBottom:2}}>{lbl}</div>
-                    <div style={{fontFamily:'var(--mono)',fontWeight:800,fontSize:'1.1rem',color:sc(val)}}>{val.toFixed(2)}</div>
-                    <div style={{fontSize:'0.6rem',color:'#9CA3AF',marginTop:1}}>{sub}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>}
 
       {/* EMPLOYEES */}
       {tab==='employees'&&<div className="fu2">
+        {/* Search filter */}
+        {emps.length>0&&(
+          <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'center',flexWrap:'wrap'}}>
+            <div style={{position:'relative',flex:1,minWidth:200}}>
+              <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'#9CA3AF',fontSize:13}}>🔍</span>
+              <input placeholder="Search employee by name or role…" value={empSearch} onChange={e=>setEmpSearch(e.target.value)}
+                style={{width:'100%',padding:'8px 10px 8px 30px',borderRadius:10,border:'1.5px solid #E5E7EB',background:'#fff',fontSize:'0.82rem',fontFamily:'var(--font)',outline:'none',transition:'border-color 0.2s'}}
+                onFocus={(e:any)=>e.target.style.borderColor='#4F46E5'}
+                onBlur={(e:any)=>e.target.style.borderColor='#E5E7EB'}/>
+              {empSearch&&<button onClick={()=>setEmpSearch('')} style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:'#9CA3AF',fontSize:14}}>✕</button>}
+            </div>
+            <span style={{fontSize:'0.75rem',color:'#9CA3AF',flexShrink:0}}>
+              {emps.filter(e=>!empSearch||e.name.toLowerCase().includes(empSearch.toLowerCase())||(e.role||'').toLowerCase().includes(empSearch.toLowerCase())).length} of {emps.length}
+            </span>
+          </div>
+        )}
         {emps.length===0
           ? <Empty icon="👥" title="No employees yet" sub='Click "+ Employee"'/>
-          : emps.map((emp,i)=>(
-            <div key={emp.id} className="card" style={{padding:'1rem 1.25rem',marginBottom:10,display:'flex',alignItems:'center',gap:12}}>
-              <div style={{width:42,height:42,borderRadius:'50%',background:EMP_GRADS[i%EMP_GRADS.length],display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:800,color:'#fff',flexShrink:0}}>{emp.name.slice(0,2)}</div>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:700}}>{emp.name}</div>
-                {emp.role&&<div style={{fontSize:'0.75rem',color:'#9CA3AF'}}>{emp.role}</div>}
-              </div>
-              <button onClick={()=>{setPinTarget(emp);setPinF({newPin:''});setErr('');setModal('changePin')}} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#FEF3C7',color:'#D97706'}}>🔑 Change PIN</button>
-              <button onClick={()=>{setDeleteTarget({type:'employee',...emp});setModal('deleteConfirm')}} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#FEF2F2',color:'#DC2626'}}>🗑 Remove</button>
-            </div>
-          ))
+          : (()=>{
+            const filteredEmps=emps.filter(e=>!empSearch||e.name.toLowerCase().includes(empSearch.toLowerCase())||(e.role||'').toLowerCase().includes(empSearch.toLowerCase()))
+            return filteredEmps.length===0
+              ? <div style={{textAlign:'center',padding:'2.5rem',color:'#9CA3AF',background:'#fff',borderRadius:14}}>
+                  <div style={{fontSize:28,marginBottom:6}}>🔍</div>
+                  <div style={{fontWeight:600,color:'#374151'}}>No employee found for "{empSearch}"</div>
+                </div>
+              : filteredEmps.map((emp,i)=>{
+                const originalIdx=emps.findIndex(e=>e.id===emp.id)
+                const empTaskCount=tasks.filter((t:any)=>t.employee_id===emp.id).length
+                const empRow=score?.rows?.find((r:any)=>r.employee.id===emp.id)
+                const s1=empRow?.currentWeek?.score1
+                const s2=empRow?.currentWeek?.score2
+                return (
+                  <div key={emp.id} className="card" style={{padding:'1rem 1.25rem',marginBottom:10}}>
+                    <div style={{display:'flex',alignItems:'center',gap:12}}>
+                      <div style={{width:44,height:44,borderRadius:'50%',background:EMP_GRADS[originalIdx%EMP_GRADS.length],display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:800,color:'#fff',flexShrink:0}}>{emp.name.slice(0,2)}</div>
+                      <div style={{flex:1}}>
+                        <div style={{fontWeight:700,fontSize:'0.95rem'}}>{emp.name}</div>
+                        <div style={{display:'flex',alignItems:'center',gap:8,marginTop:2}}>
+                          {emp.role&&<span style={{fontSize:'0.72rem',color:'#9CA3AF'}}>{emp.role}</span>}
+                          <span style={{fontSize:'0.68rem',background:'#EEF2FF',color:'#4F46E5',borderRadius:5,padding:'1px 7px',fontWeight:600}}>{empTaskCount} tasks</span>
+                        </div>
+                      </div>
+                      {/* This week score mini */}
+                      {s1!=null&&(
+                        <div style={{display:'flex',gap:8,marginRight:8}}>
+                          <div style={{textAlign:'center',background:'#F8F9FF',borderRadius:8,padding:'5px 10px'}}>
+                            <div style={{fontSize:'0.6rem',color:'#9CA3AF',marginBottom:1}}>Not done</div>
+                            <div style={{fontFamily:'var(--mono)',fontWeight:800,fontSize:'0.9rem',color:s1<0?'#EF4444':s1===0?'#10B981':'#6B7280'}}>{s1.toFixed(2)}</div>
+                          </div>
+                          <div style={{textAlign:'center',background:'#F8F9FF',borderRadius:8,padding:'5px 10px'}}>
+                            <div style={{fontSize:'0.6rem',color:'#9CA3AF',marginBottom:1}}>Not on time</div>
+                            <div style={{fontFamily:'var(--mono)',fontWeight:800,fontSize:'0.9rem',color:s2<0?'#EF4444':s2===0?'#10B981':'#6B7280'}}>{s2!=null?s2.toFixed(2):'—'}</div>
+                          </div>
+                        </div>
+                      )}
+                      <button onClick={()=>{setPinTarget(emp);setPinF({newPin:''});setErr('');setModal('changePin')}} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#FEF3C7',color:'#D97706'}}>🔑 PIN</button>
+                      <button onClick={()=>{setDeleteTarget({type:'employee',...emp});setModal('deleteConfirm')}} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#FEF2F2',color:'#DC2626'}}>🗑 Remove</button>
+                    </div>
+                  </div>
+                )
+              })
+          })()
         }
       </div>}
 
