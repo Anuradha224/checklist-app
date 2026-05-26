@@ -76,12 +76,12 @@ export default function LoginPage() {
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
               {mode==='admin' ? <>
-                <FField label="Username"><FInput placeholder="admin" value={form.username} onChange={v=>setForm(p=>({...p,username:v}))} onEnter={login}/></FField>
-                <FField label="Password"><FInput type="password" placeholder="••••••••" value={form.password} onChange={v=>setForm(p=>({...p,password:v}))} onEnter={login}/></FField>
+                <FField label="Username"><FInput placeholder="admin" value={form.username} onChange={(v:string)=>setForm(p=>({...p,username:v}))} onEnter={login}/></FField>
+                <FField label="Password"><FInput type="password" placeholder="••••••••" value={form.password} onChange={(v:string)=>setForm(p=>({...p,password:v}))} onEnter={login}/></FField>
                 <p style={{ fontSize:'0.72rem', color:'#9CA3AF', textAlign:'center' }}>Default: admin / admin123</p>
               </> : <>
-                <FField label="Your Name"><FInput placeholder="e.g. SANJANA" value={form.name} onChange={v=>setForm(p=>({...p,name:v}))} onEnter={login}/></FField>
-                <FField label="PIN"><FInput type="password" placeholder="Enter your PIN" value={form.pin} onChange={v=>setForm(p=>({...p,pin:v}))} onEnter={login}/></FField>
+                <FField label="Your Name"><FInput placeholder="e.g. SANJANA" value={form.name} onChange={(v:string)=>setForm(p=>({...p,name:v}))} onEnter={login}/></FField>
+                <FField label="PIN"><FInput type="password" placeholder="Enter your PIN" value={form.pin} onChange={(v:string)=>setForm(p=>({...p,pin:v}))} onEnter={login}/></FField>
               </>}
               {err && <div style={{ background:'#FEF2F2', border:'1.5px solid #FCA5A5', borderRadius:10, padding:'9px 12px', fontSize:'0.8rem', color:'#DC2626' }}>⚠ {err}</div>}
               <button onClick={login} disabled={loading} style={{
@@ -103,7 +103,7 @@ export default function LoginPage() {
 function FField({ label, children }: any) {
   return <div><label style={{ fontSize:'0.75rem', fontWeight:600, color:'#6B7280', display:'block', marginBottom:6 }}>{label}</label>{children}</div>
 }
-function FInput({ type='text', placeholder, value, onChange, onEnter }: any) {
+function FInput({ type='text', placeholder, value, onChange, onEnter }: {type?:string;placeholder?:string;value:string;onChange:(v:string)=>void;onEnter?:()=>void}) {
   return (
     <input type={type} placeholder={placeholder} value={value}
       onChange={(e:any)=>onChange(e.target.value)}
