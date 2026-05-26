@@ -23,6 +23,9 @@ export default function AdminPage(){
   const [bench,setBench]=useState(0)
   const [loading,setLoading]=useState(true)
   const [search,setSearch]=useState('')
+  const [taskFilterEmp,setTaskFilterEmp]=useState('all')
+  const [taskFilterFreq,setTaskFilterFreq]=useState('all')
+  const [taskSearch,setTaskSearch]=useState('')
   const [modal,setModal]=useState<string|null>(null)
   const [pinTarget,setPinTarget]=useState<any>(null)
   const [empF,setEmpF]=useState({name:'',role:'',pin:''})
@@ -314,24 +317,87 @@ export default function AdminPage(){
 
       {/* TASKS */}
       {tab==='tasks'&&<div className="fu2">
+        {/* Filter bar */}
+        <div style={{display:'flex',gap:8,marginBottom:12,flexWrap:'wrap',alignItems:'center'}}>
+          {/* Search */}
+          <div style={{position:'relative',flex:1,minWidth:180}}>
+            <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'#9CA3AF',fontSize:13}}>🔍</span>
+            <input placeholder="Search task name…" value={taskSearch} onChange={e=>setTaskSearch(e.target.value)}
+              style={{width:'100%',padding:'8px 10px 8px 30px',borderRadius:10,border:'1.5px solid #E5E7EB',background:'#fff',fontSize:'0.82rem',fontFamily:'var(--font)',outline:'none',transition:'border-color 0.2s'}}
+              onFocus={(e:any)=>e.target.style.borderColor='#4F46E5'}
+              onBlur={(e:any)=>e.target.style.borderColor='#E5E7EB'}/>
+            {taskSearch&&<button onClick={()=>setTaskSearch('')} style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:'#9CA3AF',fontSize:14}}>✕</button>}
+          </div>
+          {/* Employee filter */}
+          <select value={taskFilterEmp} onChange={e=>setTaskFilterEmp(e.target.value)}
+            style={{padding:'8px 12px',borderRadius:10,border:`1.5px solid ${taskFilterEmp!=='all'?'#4F46E5':'#E5E7EB'}`,background:taskFilterEmp!=='all'?'#EEF2FF':'#fff',fontSize:'0.82rem',fontFamily:'var(--font)',outline:'none',color:taskFilterEmp!=='all'?'#4F46E5':'#374151',fontWeight:taskFilterEmp!=='all'?600:400,cursor:'pointer'}}>
+            <option value="all">All Employees</option>
+            {emps.map((e:any)=><option key={e.id} value={e.id}>{e.name}</option>)}
+          </select>
+          {/* Frequency filter */}
+          <select value={taskFilterFreq} onChange={e=>setTaskFilterFreq(e.target.value)}
+            style={{padding:'8px 12px',borderRadius:10,border:`1.5px solid ${taskFilterFreq!=='all'?'#7C3AED':'#E5E7EB'}`,background:taskFilterFreq!=='all'?'#F5F3FF':'#fff',fontSize:'0.82rem',fontFamily:'var(--font)',outline:'none',color:taskFilterFreq!=='all'?'#7C3AED':'#374151',fontWeight:taskFilterFreq!=='all'?600:400,cursor:'pointer'}}>
+            <option value="all">All Frequencies</option>
+            {FOPT.map(f=><option key={f} value={f}>{FL[f]}</option>)}
+          </select>
+          {/* Reset */}
+          {(taskSearch||taskFilterEmp!=='all'||taskFilterFreq!=='all')&&(
+            <button onClick={()=>{setTaskSearch('');setTaskFilterEmp('all');setTaskFilterFreq('all')}}
+              style={{padding:'8px 12px',borderRadius:10,border:'1.5px solid #E5E7EB',background:'#fff',cursor:'pointer',fontSize:'0.78rem',fontFamily:'var(--font)',color:'#9CA3AF'}}>
+              ✕ Reset
+            </button>
+          )}
+          {/* Count */}
+          <span style={{fontSize:'0.75rem',color:'#9CA3AF',marginLeft:'auto'}}>
+            {tasks.filter(t=>
+              (taskFilterEmp==='all'||t.employee_id===taskFilterEmp)&&
+              (taskFilterFreq==='all'||t.freq===taskFilterFreq)&&
+              (!taskSearch||t.name.toLowerCase().includes(taskSearch.toLowerCase()))
+            ).length} of {tasks.length} tasks
+          </span>
+        </div>
+
         {tasks.length===0
           ? <Empty icon="📋" title="No tasks yet" sub='Click "+ Task"'/>
-          : tasks.map(t=>{
-            const emp=emps.find((e:any)=>e.id===t.employee_id)
-            const FCOL:any={D:{bg:'#EEF2FF',c:'#4F46E5'},W:{bg:'#ECFDF5',c:'#059669'},F:{bg:'#FEF9C3',c:'#B45309'},M:{bg:'#FDF4FF',c:'#9333EA'},Q:{bg:'#FFF1F2',c:'#BE185D'},Y:{bg:'#FFF7ED',c:'#C2410C'}}
-            const fc=FCOL[t.freq]||FCOL.D
-            return (
-              <div key={t.id} className="card" style={{padding:'0.875rem 1.25rem',marginBottom:8,display:'flex',alignItems:'center',gap:10}}>
-                <span style={{fontSize:'0.7rem',fontWeight:700,padding:'3px 9px',borderRadius:7,flexShrink:0,background:fc.bg,color:fc.c}}>{FL[t.freq]}</span>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontWeight:600,fontSize:'0.875rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{t.name}</div>
-                  <div style={{fontSize:'0.72rem',color:'#9CA3AF'}}>{emp?.name||'—'} · From {format(parseISO(t.start_date),'d MMM yyyy')}</div>
-                </div>
-                <button onClick={()=>{setEditF({id:t.id,name:t.name,employee_id:t.employee_id,freq:t.freq,start_date:t.start_date});setEditTask(t);setErr('');setModal('editTask')}} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#EEF2FF',color:'#4F46E5'}}>✏ Edit</button>
-                <button onClick={()=>{setDeleteTarget({type:'task',...t});setModal('deleteConfirm')}} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#FEF2F2',color:'#DC2626'}}>🗑 Delete</button>
-              </div>
+          : (()=>{
+            const filtered=tasks.filter(t=>
+              (taskFilterEmp==='all'||t.employee_id===taskFilterEmp)&&
+              (taskFilterFreq==='all'||t.freq===taskFilterFreq)&&
+              (!taskSearch||t.name.toLowerCase().includes(taskSearch.toLowerCase()))
             )
-          })
+            return filtered.length===0
+              ? <div style={{textAlign:'center',padding:'3rem',color:'#9CA3AF',background:'#fff',borderRadius:16}}>
+                  <div style={{fontSize:32,marginBottom:8}}>🔍</div>
+                  <div style={{fontWeight:600,color:'#374151'}}>No tasks match your filters</div>
+                  <div style={{fontSize:'0.8rem',marginTop:4}}>Try clearing the filters above</div>
+                </div>
+              : filtered.map(t=>{
+                const emp=emps.find((e:any)=>e.id===t.employee_id)
+                const FCOL:any={D:{bg:'#EEF2FF',c:'#4F46E5'},W:{bg:'#ECFDF5',c:'#059669'},F:{bg:'#FEF9C3',c:'#B45309'},M:{bg:'#FDF4FF',c:'#9333EA'},Q:{bg:'#FFF1F2',c:'#BE185D'},Y:{bg:'#FFF7ED',c:'#C2410C'}}
+                const fc=FCOL[t.freq]||FCOL.D
+                return (
+                  <div key={t.id} className="card" style={{padding:'0.875rem 1.25rem',marginBottom:8,display:'flex',alignItems:'center',gap:10}}>
+                    <span style={{fontSize:'0.7rem',fontWeight:700,padding:'3px 9px',borderRadius:7,flexShrink:0,background:fc.bg,color:fc.c}}>{FL[t.freq]}</span>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontWeight:600,fontSize:'0.875rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
+                        {taskSearch ? t.name.split(new RegExp(`(${taskSearch})`, 'gi')).map((part:string, i:number) =>
+                          part.toLowerCase()===taskSearch.toLowerCase()
+                            ? <mark key={i} style={{background:'#FEF9C3',color:'#B45309',borderRadius:3,padding:'0 2px'}}>{part}</mark>
+                            : part
+                        ) : t.name}
+                      </div>
+                      <div style={{fontSize:'0.72rem',color:'#9CA3AF',marginTop:2,display:'flex',alignItems:'center',gap:6}}>
+                        <span style={{background:'#F3F4F6',borderRadius:4,padding:'1px 6px',fontWeight:500,color:'#6B7280'}}>{emp?.name||'—'}</span>
+                        <span>·</span>
+                        <span>From {format(parseISO(t.start_date),'d MMM yyyy')}</span>
+                      </div>
+                    </div>
+                    <button onClick={()=>{setEditF({id:t.id,name:t.name,employee_id:t.employee_id,freq:t.freq,start_date:t.start_date});setEditTask(t);setErr('');setModal('editTask')}} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#EEF2FF',color:'#4F46E5'}}>✏ Edit</button>
+                    <button onClick={()=>{setDeleteTarget({type:'task',...t});setModal('deleteConfirm')}} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#FEF2F2',color:'#DC2626'}}>🗑 Delete</button>
+                  </div>
+                )
+              })
+          })()
         }
       </div>}
 
