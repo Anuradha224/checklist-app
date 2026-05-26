@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #4F46E5;
+  --primary-2: #7C3AED;
+  --accent: #EC4899;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: #F0F2FF;
+  color: #111827;
+  min-height: 100vh;
+}
+
+/* Gradient mesh */
+.mesh {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 10% 10%, rgba(79,70,229,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 80%, rgba(236,72,153,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 50% 50%, rgba(124,58,237,0.05) 0%, transparent 70%),
+    #F0F2FF;
+}
+
+.rel { position: relative; z-index: 1; }
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.fu  { animation: fadeUp 0.35s ease both; }
+.fu1 { animation: fadeUp 0.35s 0.06s ease both; }
+.fu2 { animation: fadeUp 0.35s 0.12s ease both; }
+.fu3 { animation: fadeUp 0.35s 0.18s ease both; }
+.fu4 { animation: fadeUp 0.35s 0.24s ease both; }
+.fu5 { animation: fadeUp 0.35s 0.30s ease both; }
+
+/* Cards */
+.card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 2px 16px rgba(79,70,229,0.08);
+}
+
+/* Freq pills */
+.pill-D { background:#EEF2FF; color:#4F46E5; }
+.pill-W { background:#ECFDF5; color:#059669; }
+.pill-F { background:#FEF9C3; color:#B45309; }
+.pill-M { background:#FDF4FF; color:#9333EA; }
+.pill-Q { background:#FFF1F2; color:#BE185D; }
+.pill-Y { background:#FFF7ED; color:#C2410C; }
+
+/* Gradient backgrounds */
+.grad-primary { background: linear-gradient(135deg, #4F46E5, #7C3AED); }
+.grad-hero    { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%); }
+.grad-success { background: linear-gradient(135deg, #10B981, #059669); }
+.grad-warn    { background: linear-gradient(135deg, #F59E0B, #D97706); }
+
+/* Score colors */
+.sc-good { color: #10B981; }
+.sc-bad  { color: #EF4444; }
+.sc-zero { color: #6B7280; }
