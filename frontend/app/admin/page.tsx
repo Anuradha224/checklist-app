@@ -282,7 +282,7 @@ export default function AdminPage(){
               <MTitle title="⚙ Set Benchmark" onClose={()=>setModal(null)}/>
               <p style={{fontSize:'0.8rem',color:'#6B7280',marginBottom:12}}>Score = ROUND(Actual/Planned×100−100, 2). 0 = all work done on time.</p>
               <MField label="Benchmark value"><MInput type="number" value={String(bench)} onChange={(v:string)=>setBench(Number(v))}/></MField>
-              <MActions onCancel={()=>setModal(null)} onSave={saveBenchmark}/>
+              <MActions onCancel={()=>setModal(null)} onSave={saveBench}/>
             </>}
             {modal==='addEmp'&&<>
               <MTitle title="👤 Add Employee" onClose={()=>setModal(null)}/>
