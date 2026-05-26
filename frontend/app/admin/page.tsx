@@ -123,6 +123,7 @@ export default function AdminPage(){
           </div>
         </div>
         <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+          <button onClick={()=>router.push('/admin/view-tasks')} style={{padding:'7px 14px',borderRadius:99,border:'1.5px solid #059669',background:'rgba(5,150,105,0.08)',color:'#059669',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)'}}>👁 View All Tasks</button>
           <button onClick={()=>router.push('/admin/history')} style={{padding:'7px 14px',borderRadius:99,border:'1.5px solid #4F46E5',background:'rgba(79,70,229,0.08)',color:'#4F46E5',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)'}}>📅 History & Export</button>
           {[['⚙','bench','#F3F4F6','#374151'],['+ Employee','addEmp','#F3F4F6','#374151'],['🔐','changeAdminPw','#EEF2FF','#4F46E5']].map(([l,m,bg,c])=>(
             <button key={m} onClick={()=>setModal(m)} style={{padding:'7px 12px',borderRadius:99,border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:600,fontFamily:'var(--font)',background:bg,color:c}}>{l}</button>
