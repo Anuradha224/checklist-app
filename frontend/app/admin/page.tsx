@@ -28,6 +28,9 @@ export default function AdminPage(){
   const [empF,setEmpF]=useState({name:'',role:'',pin:''})
   const [taskF,setTaskF]=useState({name:'',employee_id:'',freq:'D',start_date:new Date().toISOString().slice(0,10)})
   const [pinF,setPinF]=useState({newPin:''})
+  const [editTask,setEditTask]=useState<any>(null)
+  const [deleteTarget,setDeleteTarget]=useState<any>(null)
+  const [editF,setEditF]=useState({id:'',name:'',employee_id:'',freq:'D',start_date:''})
   const [adminPwF,setAdminPwF]=useState({current:'',newPw:'',confirm:''})
   const [adminPwErr,setAdminPwErr]=useState('')
   const [adminPwOk,setAdminPwOk]=useState(false)
@@ -56,8 +59,8 @@ export default function AdminPage(){
     setSaving(false)
   }
   async function delEmp(id:string){
-    if(!confirm('Delete employee and all their tasks?'))return
-    await api('/api/employees',{method:'DELETE',body:JSON.stringify({id})});await load()
+    await api('/api/employees',{method:'DELETE',body:JSON.stringify({id})})
+    setDeleteTarget(null);setModal(null);await load()
   }
   async function addTask(){
     if(!taskF.name||!taskF.employee_id)return
@@ -66,9 +69,19 @@ export default function AdminPage(){
     catch(e:any){setErr(e.message)}
     setSaving(false)
   }
+  async function saveEditTask(){
+    if(!editF.name.trim()||!editF.employee_id)return
+    setSaving(true);setErr('')
+    try{
+      await api('/api/tasks/update',{method:'PATCH',body:JSON.stringify(editF)})
+      setEditTask(null);setModal(null);await load()
+    }catch(e:any){setErr(e.message)}
+    setSaving(false)
+  }
+
   async function delTask(id:string){
-    if(!confirm('Delete task and all records?'))return
-    await api('/api/tasks',{method:'DELETE',body:JSON.stringify({id})});await load()
+    await api('/api/tasks',{method:'DELETE',body:JSON.stringify({id})})
+    setDeleteTarget(null);setModal(null);await load()
   }
   async function changePin(){
     if(!pinTarget||!pinF.newPin||pinF.newPin.length<4)return
@@ -293,7 +306,7 @@ export default function AdminPage(){
                 {emp.role&&<div style={{fontSize:'0.75rem',color:'#9CA3AF'}}>{emp.role}</div>}
               </div>
               <button onClick={()=>{setPinTarget(emp);setPinF({newPin:''});setErr('');setModal('changePin')}} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#FEF3C7',color:'#D97706'}}>🔑 Change PIN</button>
-              <button onClick={()=>delEmp(emp.id)} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#FEF2F2',color:'#DC2626'}}>Remove</button>
+              <button onClick={()=>{setDeleteTarget({type:'employee',...emp});setModal('deleteConfirm')}} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#FEF2F2',color:'#DC2626'}}>🗑 Remove</button>
             </div>
           ))
         }
@@ -314,7 +327,8 @@ export default function AdminPage(){
                   <div style={{fontWeight:600,fontSize:'0.875rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{t.name}</div>
                   <div style={{fontSize:'0.72rem',color:'#9CA3AF'}}>{emp?.name||'—'} · From {format(parseISO(t.start_date),'d MMM yyyy')}</div>
                 </div>
-                <button onClick={()=>delTask(t.id)} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#FEF2F2',color:'#DC2626'}}>Delete</button>
+                <button onClick={()=>{setEditF({id:t.id,name:t.name,employee_id:t.employee_id,freq:t.freq,start_date:t.start_date});setEditTask(t);setErr('');setModal('editTask')}} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#EEF2FF',color:'#4F46E5'}}>✏ Edit</button>
+                <button onClick={()=>{setDeleteTarget({type:'task',...t});setModal('deleteConfirm')}} style={{padding:'6px 12px',borderRadius:8,border:'none',cursor:'pointer',fontSize:'0.75rem',fontWeight:700,fontFamily:'var(--font)',background:'#FEF2F2',color:'#DC2626'}}>🗑 Delete</button>
               </div>
             )
           })
@@ -367,6 +381,51 @@ export default function AdminPage(){
                 <MField label="New PIN (min 4 characters) *"><MInput type="password" placeholder="Enter new PIN" value={pinF.newPin} onChange={(v:string)=>setPinF({newPin:v})}/></MField>
                 {err&&<ErrBox msg={err}/>}
                 <MActions onCancel={()=>{setModal(null);setErr('')}} onSave={changePin} saving={saving} saveLabel="Update PIN"/>
+              </div>
+            </>}
+            {modal==='editTask'&&editTask&&<>
+              <MTitle title="✏ Edit Task" onClose={()=>{setModal(null);setErr('')}}/>
+              <div style={{display:'flex',flexDirection:'column',gap:12}}>
+                <MField label="Task name *"><MInput placeholder="Task name" value={editF.name} onChange={(v:string)=>setEditF(p=>({...p,name:v}))}/></MField>
+                <MField label="Employee *">
+                  <select value={editF.employee_id} onChange={(e:any)=>setEditF(p=>({...p,employee_id:e.target.value}))}
+                    style={{width:'100%',padding:'11px 14px',borderRadius:12,border:'1.5px solid #E5E7EB',background:'#F9FAFB',color:'#111827',fontSize:'0.9rem',fontFamily:'var(--font)',outline:'none'}}>
+                    <option value="">Select employee</option>
+                    {emps.map((e:any)=><option key={e.id} value={e.id}>{e.name}</option>)}
+                  </select>
+                </MField>
+                <MField label="Frequency">
+                  <select value={editF.freq} onChange={(e:any)=>setEditF(p=>({...p,freq:e.target.value}))}
+                    style={{width:'100%',padding:'11px 14px',borderRadius:12,border:'1.5px solid #E5E7EB',background:'#F9FAFB',color:'#111827',fontSize:'0.9rem',fontFamily:'var(--font)',outline:'none'}}>
+                    {FOPT.map(f=><option key={f} value={f}>{FL[f]}</option>)}
+                  </select>
+                </MField>
+                <MField label="Start date"><MInput type="date" value={editF.start_date} onChange={(v:string)=>setEditF(p=>({...p,start_date:v}))}/></MField>
+                <div style={{background:'#FEF9C3',border:'1.5px solid #FCD34D',borderRadius:10,padding:'9px 12px',fontSize:'0.78rem',color:'#92400E'}}>
+                  ⚠ Editing task name or frequency will update future task instances on next generation.
+                </div>
+                {err&&<ErrBox msg={err}/>}
+                <MActions onCancel={()=>{setModal(null);setErr('')}} onSave={saveEditTask} saving={saving} saveLabel="Save Changes"/>
+              </div>
+            </>}
+            {modal==='deleteConfirm'&&deleteTarget&&<>
+              <MTitle title={deleteTarget.type==='task'?'🗑 Delete Task':'🗑 Remove Employee'} onClose={()=>{setModal(null);setDeleteTarget(null)}}/>
+              <div style={{textAlign:'center',padding:'0.5rem 0 1rem'}}>
+                <div style={{fontSize:44,marginBottom:10}}>{deleteTarget.type==='task'?'📋':'👤'}</div>
+                <div style={{fontWeight:700,fontSize:'1rem',marginBottom:6}}>{deleteTarget.name}</div>
+                {deleteTarget.type==='task'
+                  ? <p style={{fontSize:'0.82rem',color:'#6B7280'}}>This will permanently delete this task and <strong>all its history records</strong>. This cannot be undone.</p>
+                  : <p style={{fontSize:'0.82rem',color:'#6B7280'}}>This will permanently delete <strong>{deleteTarget.name}</strong> and <strong>all their tasks and records</strong>. This cannot be undone.</p>
+                }
+                <div style={{background:'#FEF2F2',border:'1.5px solid #FCA5A5',borderRadius:10,padding:'10px 14px',marginTop:12,fontSize:'0.78rem',color:'#DC2626',fontWeight:500}}>
+                  ⚠ This action is permanent and cannot be reversed
+                </div>
+              </div>
+              <div style={{display:'flex',gap:8,justifyContent:'center',marginTop:4}}>
+                <button onClick={()=>{setModal(null);setDeleteTarget(null)}} style={{padding:'10px 24px',borderRadius:10,border:'1.5px solid #E5E7EB',background:'#fff',color:'#374151',fontWeight:600,cursor:'pointer',fontFamily:'var(--font)'}}>Cancel</button>
+                <button onClick={()=>deleteTarget.type==='task'?delTask(deleteTarget.id):delEmp(deleteTarget.id)} style={{padding:'10px 24px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#DC2626,#B91C1C)',color:'#fff',fontWeight:700,cursor:'pointer',fontFamily:'var(--font)',boxShadow:'0 3px 12px rgba(220,38,38,0.35)'}}>
+                  Yes, Delete Permanently
+                </button>
               </div>
             </>}
             {modal==='changeAdminPw'&&<>
