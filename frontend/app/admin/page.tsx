@@ -281,15 +281,15 @@ export default function AdminPage(){
             {modal==='bench'&&<>
               <MTitle title="⚙ Set Benchmark" onClose={()=>setModal(null)}/>
               <p style={{fontSize:'0.8rem',color:'#6B7280',marginBottom:12}}>Score = ROUND(Actual/Planned×100−100, 2). 0 = all work done on time.</p>
-              <MField label="Benchmark value"><MInput type="number" value={String(bench)} onChange={v=>setBench(Number(v))}/></MField>
+              <MField label="Benchmark value"><MInput type="number" value={String(bench)} onChange={(v:string)=>setBench(Number(v))}/></MField>
               <MActions onCancel={()=>setModal(null)} onSave={saveBenchmark}/>
             </>}
             {modal==='addEmp'&&<>
               <MTitle title="👤 Add Employee" onClose={()=>setModal(null)}/>
               <div style={{display:'flex',flexDirection:'column',gap:12}}>
-                <MField label="Name *"><MInput placeholder="e.g. SANJANA" value={empF.name} onChange={v=>setEmpF(p=>({...p,name:v}))}/></MField>
-                <MField label="Role"><MInput placeholder="e.g. Sales Executive" value={empF.role} onChange={v=>setEmpF(p=>({...p,role:v}))}/></MField>
-                <MField label="PIN (min 4 digits) *"><MInput type="password" placeholder="Set a PIN for this employee" value={empF.pin} onChange={v=>setEmpF(p=>({...p,pin:v}))}/></MField>
+                <MField label="Name *"><MInput placeholder="e.g. SANJANA" value={empF.name} onChange={(v:string)=>setEmpF(p=>({...p,name:v}))}/></MField>
+                <MField label="Role"><MInput placeholder="e.g. Sales Executive" value={empF.role} onChange={(v:string)=>setEmpF(p=>({...p,role:v}))}/></MField>
+                <MField label="PIN (min 4 digits) *"><MInput type="password" placeholder="Set a PIN for this employee" value={empF.pin} onChange={(v:string)=>setEmpF(p=>({...p,pin:v}))}/></MField>
                 {err&&<ErrBox msg={err}/>}
                 <MActions onCancel={()=>setModal(null)} onSave={addEmp} saving={saving} saveLabel="Add Employee"/>
               </div>
@@ -297,7 +297,7 @@ export default function AdminPage(){
             {modal==='addTask'&&<>
               <MTitle title="📋 Add Recurring Task" onClose={()=>setModal(null)}/>
               <div style={{display:'flex',flexDirection:'column',gap:12}}>
-                <MField label="Task name *"><MInput placeholder="e.g. Daily design send" value={taskF.name} onChange={v=>setTaskF(p=>({...p,name:v}))}/></MField>
+                <MField label="Task name *"><MInput placeholder="e.g. Daily design send" value={taskF.name} onChange={(v:string)=>setTaskF(p=>({...p,name:v}))}/></MField>
                 <MField label="Employee *">
                   <select value={taskF.employee_id} onChange={(e:any)=>setTaskF(p=>({...p,employee_id:e.target.value}))}
                     style={{width:'100%',padding:'11px 14px',borderRadius:12,border:'1.5px solid #E5E7EB',background:'#F9FAFB',color:'#111827',fontSize:'0.9rem',fontFamily:'var(--font)',outline:'none'}}>
@@ -311,7 +311,7 @@ export default function AdminPage(){
                     {FOPT.map(f=><option key={f} value={f}>{FL[f]}</option>)}
                   </select>
                 </MField>
-                <MField label="Start date"><MInput type="date" value={taskF.start_date} onChange={v=>setTaskF(p=>({...p,start_date:v}))}/></MField>
+                <MField label="Start date"><MInput type="date" value={taskF.start_date} onChange={(v:string)=>setTaskF(p=>({...p,start_date:v}))}/></MField>
                 {err&&<ErrBox msg={err}/>}
                 <MActions onCancel={()=>setModal(null)} onSave={addTask} saving={saving} saveLabel="Add Task"/>
               </div>
@@ -319,7 +319,7 @@ export default function AdminPage(){
             {modal==='changePin'&&pinTarget&&<>
               <MTitle title={`🔑 Change PIN — ${pinTarget.name}`} onClose={()=>{setModal(null);setErr('')}}/>
               <div style={{display:'flex',flexDirection:'column',gap:12}}>
-                <MField label="New PIN (min 4 characters) *"><MInput type="password" placeholder="Enter new PIN" value={pinF.newPin} onChange={v=>setPinF({newPin:v})}/></MField>
+                <MField label="New PIN (min 4 characters) *"><MInput type="password" placeholder="Enter new PIN" value={pinF.newPin} onChange={(v:string)=>setPinF({newPin:v})}/></MField>
                 {err&&<ErrBox msg={err}/>}
                 <MActions onCancel={()=>{setModal(null);setErr('')}} onSave={changePin} saving={saving} saveLabel="Update PIN"/>
               </div>
@@ -350,7 +350,7 @@ function MTitle({title,onClose}:any){
   </div>
 }
 function MField({label,children}:any){return <div><label style={{fontSize:'0.72rem',fontWeight:600,color:'#6B7280',display:'block',marginBottom:5}}>{label}</label>{children}</div>}
-function MInput({type='text',placeholder,value,onChange}:any){
+function MInput({type='text',placeholder,value,onChange}:{type?:string;placeholder?:string;value:string;onChange:(v:string)=>void}){
   return <input type={type} placeholder={placeholder} value={value} onChange={(e:any)=>onChange(e.target.value)}
     style={{width:'100%',padding:'11px 14px',borderRadius:12,border:'1.5px solid #E5E7EB',background:'#F9FAFB',color:'#111827',fontSize:'0.9rem',fontFamily:'var(--font)',outline:'none',transition:'border-color 0.2s'}}
     onFocus={(e:any)=>(e.target.style.borderColor='#4F46E5')}
