@@ -212,6 +212,147 @@ export default function HistoryPage(){
     })
   }
 
+  function printLastWeek(){
+    Promise.all([
+      import('jspdf').then(m=>m.jsPDF),
+      import('jspdf-autotable').then(m=>m.default||m)
+    ]).then(([jsPDF, autoTable])=>{
+      const doc = new jsPDF({orientation:'landscape'})
+      const pageW = doc.internal.pageSize.getWidth()
+
+      // Week label for last week
+      const lwStart = startOfWeek(subWeeks(new Date(),1),{weekStartsOn:1})
+      const lwEnd   = endOfWeek(subWeeks(new Date(),1),{weekStartsOn:1})
+      const lwLabel = `${format(lwStart,'d MMM yyyy')} – ${format(lwEnd,'d MMM yyyy')}`
+
+      // ── Purple header ──────────────────────────────────
+      doc.setFillColor(79,70,229)
+      doc.rect(0, 0, pageW, 32, 'F')
+
+      // Logo circle
+      doc.setFillColor(255,255,255)
+      doc.circle(20, 16, 9, 'F')
+      doc.setTextColor(79,70,229)
+      doc.setFontSize(11)
+      doc.setFont('helvetica','bold')
+      doc.text('AT', 16.5, 19)
+
+      // Title
+      doc.setTextColor(255,255,255)
+      doc.setFontSize(15)
+      doc.setFont('helvetica','bold')
+      doc.text('Anuradha Textile', 34, 12)
+      doc.setFontSize(9)
+      doc.setFont('helvetica','normal')
+      doc.text('Weekly KRA / KPI Score Report — Last Week', 34, 20)
+      doc.setFontSize(8)
+      doc.setTextColor(200,200,255)
+      doc.text(`Week: ${lwLabel}`, 34, 26)
+
+      // Right side info
+      doc.setFontSize(8)
+      doc.setTextColor(200,200,255)
+      doc.text(`Printed: ${format(new Date(),'EEEE, dd MMM yyyy')}`, pageW-14, 12, {align:'right'})
+      doc.text('Score = ROUND(Actual / Planned × 100 − 100, 2)', pageW-14, 20, {align:'right'})
+      doc.text('0 = Perfect  ·  Negative = Work not done', pageW-14, 26, {align:'right'})
+
+      // ── Legend bar ─────────────────────────────────────
+      doc.setFillColor(240,242,255)
+      doc.rect(0, 32, pageW, 10, 'F')
+      doc.setFontSize(7.5)
+      doc.setFont('helvetica','bold')
+      doc.setTextColor(16,185,129)
+      doc.text('● 0.00 = All work done on time (perfect score)', 14, 38.5)
+      doc.setTextColor(239,68,68)
+      doc.text('● Negative score = Work not completed or not on time', 110, 38.5)
+      doc.setTextColor(107,114,128)
+      doc.text(`● Benchmark: ${historyData[1]?.benchmark ?? 0}`, 230, 38.5)
+
+      // ── Last week data ─────────────────────────────────
+      const lwData = historyData[2] // index 2 = offset -1 = last week
+      const allNames = [...new Set((lwData?.rows||[]).map((r:any)=>r.employee.name))] as string[]
+
+      const head = [[
+        {content:'#',   styles:{halign:'center',cellWidth:10}},
+        {content:'Employee', styles:{halign:'left',cellWidth:40}},
+        {content:'Role', styles:{halign:'left',cellWidth:35}},
+        {content:'KPI', styles:{halign:'center',cellWidth:45}},
+        {content:'Planned', styles:{halign:'center',cellWidth:22}},
+        {content:'Actual Done', styles:{halign:'center',cellWidth:28}},
+        {content:'Score', styles:{halign:'center',cellWidth:25}},
+        {content:'Status', styles:{halign:'center',cellWidth:30}},
+      ]]
+
+      const body:any[] = []
+
+      allNames.forEach((name:string, idx:number)=>{
+        const emp = allEmps.find((e:any)=>e.name===name)
+        const row = lwData?.rows?.find((r:any)=>r.employee.name===name)
+        if(!row) return
+
+        // KPI 1 — % work not done
+        const s1   = row.currentWeek.score1
+        const pln  = row.currentWeek.planned
+        const done = row.currentWeek.done
+        const status1 = s1===0?'✓ Perfect':s1<0?'✗ Work Missed':'—'
+
+        // KPI 2 — % work not on time
+        const s2       = row.currentWeek.score2
+        const onTime   = row.currentWeek.doneOnTime
+        const status2  = s2===0?'✓ On Time':s2<0?'✗ Delays':'—'
+
+        body.push([
+          {content: idx+1, styles:{halign:'center',fontStyle:'bold',textColor:[150,150,150]}},
+          {content: name, styles:{fontStyle:'bold',textColor:[30,30,30]}},
+          {content: emp?.role||'—', styles:{textColor:[150,150,150]}},
+          {content: '% Work not done', styles:{textColor:[107,114,128],fontSize:7.5}},
+          {content: pln, styles:{halign:'center',fontStyle:'bold'}},
+          {content: done, styles:{halign:'center',fontStyle:'bold'}},
+          {content: s1!=null?s1.toFixed(2):'—', styles:{halign:'center',fontStyle:'bold',textColor:s1<0?[220,38,38]:s1===0?[5,150,105]:[107,114,128],fontSize:11}},
+          {content: status1, styles:{halign:'center',fontSize:7.5,textColor:s1<0?[220,38,38]:s1===0?[5,150,105]:[107,114,128]}},
+        ])
+        body.push([
+          {content:'', styles:{fillColor:[250,250,255]}},
+          {content:'', styles:{fillColor:[250,250,255]}},
+          {content:'', styles:{fillColor:[250,250,255]}},
+          {content:'% Work not on time', styles:{textColor:[107,114,128],fontSize:7.5,fillColor:[250,250,255]}},
+          {content: pln, styles:{halign:'center',fontStyle:'bold',fillColor:[250,250,255]}},
+          {content: onTime, styles:{halign:'center',fontStyle:'bold',fillColor:[250,250,255]}},
+          {content: s2!=null?s2.toFixed(2):'—', styles:{halign:'center',fontStyle:'bold',textColor:s2<0?[220,38,38]:s2===0?[5,150,105]:[107,114,128],fontSize:11,fillColor:[250,250,255]}},
+          {content: status2, styles:{halign:'center',fontSize:7.5,textColor:s2<0?[220,38,38]:s2===0?[5,150,105]:[107,114,128],fillColor:[250,250,255]}},
+        ])
+        // Divider
+        body.push([{content:'',colSpan:8,styles:{cellPadding:1.5,fillColor:[230,232,255]}}])
+      })
+
+      autoTable(doc,{
+        head: head as any,
+        body: body as any,
+        startY: 46,
+        styles:{fontSize:8.5, cellPadding:5, lineColor:[225,228,245], lineWidth:0.3},
+        headStyles:{fillColor:[55,48,163], textColor:255, fontStyle:'bold', fontSize:8.5, cellPadding:6},
+        didParseCell:(data:any)=>{
+          if(data.row.raw?.[0]?.colSpan===8){
+            data.cell.styles.cellPadding=1.5
+          }
+        },
+        didDrawPage:(data:any)=>{
+          const pg  = doc.getCurrentPageInfo().pageNumber
+          const tot = doc.getNumberOfPages()
+          const h   = doc.internal.pageSize.getHeight()
+          doc.setFillColor(79,70,229)
+          doc.rect(0, h-10, pageW, 10, 'F')
+          doc.setFontSize(7)
+          doc.setTextColor(255,255,255)
+          doc.text('Anuradha Textile — Confidential — For Internal Use Only', 14, h-3.5)
+          doc.text(`Page ${pg} of ${tot}  ·  ${lwLabel}`, pageW-14, h-3.5, {align:'right'})
+        }
+      })
+
+      doc.save(`Anuradha_LastWeek_${format(lwStart,'dd-MMM-yyyy')}.pdf`)
+    })
+  }
+
   function getFilteredNames():string[]{
     const allNames = [...new Set((historyData[0]?.rows||[]).map((r:any)=>r.employee.name))] as string[]
     return allNames.filter((n:string)=>{
@@ -238,8 +379,9 @@ export default function HistoryPage(){
           </div>
         </div>
         <div style={{display:'flex',gap:8}}>
+          <button onClick={printLastWeek} style={{padding:'7px 14px',borderRadius:99,border:'1.5px solid #4F46E5',background:'linear-gradient(135deg,#4F46E5,#7C3AED)',color:'#fff',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)',boxShadow:'0 3px 12px rgba(79,70,229,0.35)'}}>🗓 Last Week PDF</button>
           <button onClick={exportExcel} style={{padding:'7px 14px',borderRadius:99,border:'1.5px solid #10B981',background:'rgba(16,185,129,0.08)',color:'#059669',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)'}}>📊 Excel</button>
-          <button onClick={exportPDF} style={{padding:'7px 14px',borderRadius:99,border:'1.5px solid #EF4444',background:'rgba(239,68,68,0.08)',color:'#DC2626',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)'}}>📄 PDF</button>
+          <button onClick={exportPDF} style={{padding:'7px 14px',borderRadius:99,border:'1.5px solid #EF4444',background:'rgba(239,68,68,0.08)',color:'#DC2626',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)'}}>📄 4-Week PDF</button>
         </div>
       </div>
 
