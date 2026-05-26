@@ -68,6 +68,26 @@ export default function ViewTasksPage(){
 
   useEffect(()=>{load()},[load])
 
+  async function deleteInstance(id:string){
+    if(!confirm('Remove this task occurrence? This cannot be undone.')) return
+    await fetch('/api/instances/delete', {
+      method:'DELETE',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id})
+    })
+    await load()
+  }
+
+  async function deleteTask(id:string){
+    if(!confirm('Delete this recurring task and ALL its records permanently?')) return
+    await fetch('/api/tasks', {
+      method:'DELETE',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id})
+    })
+    await load()
+  }
+
   // Week filter logic
   function inWeek(planned:string, week:string):boolean{
     const p=parseISO(planned)
@@ -214,7 +234,7 @@ export default function ViewTasksPage(){
             <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.8rem'}}>
               <thead>
                 <tr style={{background:'linear-gradient(135deg,#4F46E5,#7C3AED)'}}>
-                  {['Employee','Task','Frequency','Planned Date','Actual Done','Status'].map((h,i)=>(
+                  {['Employee','Task','Frequency','Planned Date','Actual Done','Status','Action'].map((h,i)=>(
                     <th key={i} style={{padding:'10px 12px',textAlign:i===0||i===1?'left':'center',color:'#fff',fontWeight:700,fontSize:'0.75rem',whiteSpace:'nowrap'}}>{h}</th>
                   ))}
                 </tr>
@@ -256,6 +276,13 @@ export default function ViewTasksPage(){
                       </td>
                       <td style={{padding:'10px 12px',borderBottom:'1px solid #F3F4F6',textAlign:'center'}}>
                         <span style={{fontSize:'0.72rem',fontWeight:700,padding:'4px 10px',borderRadius:99,background:st.bg,color:st.c}}>{st.label}</span>
+                      </td>
+                      <td style={{padding:'8px 10px',borderBottom:'1px solid #F3F4F6',textAlign:'center'}}>
+                        <button onClick={()=>deleteInstance(inst.id)}
+                          title="Remove this occurrence"
+                          style={{padding:'4px 10px',borderRadius:7,border:'1.5px solid #FCA5A5',background:'#FEF2F2',cursor:'pointer',fontSize:'0.7rem',fontWeight:700,fontFamily:'var(--font)',color:'#DC2626'}}>
+                          🗑
+                        </button>
                       </td>
                     </tr>
                   )
@@ -337,6 +364,9 @@ export default function ViewTasksPage(){
                         </div>
                         <span style={{fontSize:'0.68rem',fontWeight:700,padding:'2px 8px',borderRadius:6,background:FC[inst.freq]?.bg,color:FC[inst.freq]?.c,flexShrink:0}}>{FL[inst.freq]}</span>
                         <span style={{fontSize:'0.7rem',fontWeight:700,padding:'3px 10px',borderRadius:99,background:st.bg,color:st.c,flexShrink:0,whiteSpace:'nowrap'}}>{st.label}</span>
+                        <button onClick={()=>deleteInstance(inst.id)}
+                          title="Remove this occurrence"
+                          style={{width:26,height:26,borderRadius:7,border:'1.5px solid #FCA5A5',background:'#FEF2F2',cursor:'pointer',fontSize:12,color:'#DC2626',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>🗑</button>
                       </div>
                     )
                   })}
