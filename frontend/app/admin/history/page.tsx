@@ -70,47 +70,145 @@ export default function HistoryPage(){
       import('jspdf-autotable').then(m=>m.default||m)
     ]).then(([jsPDF, autoTable])=>{
       const doc = new jsPDF({orientation:'landscape'})
-      doc.setFontSize(16)
-      doc.setTextColor(79,70,229)
-      doc.text('Anuradha Textile — 4-Week Score History', 14, 16)
-      doc.setFontSize(9)
-      doc.setTextColor(150,150,150)
-      doc.text(`Generated: ${format(new Date(),'dd MMM yyyy, HH:mm')}`, 14, 22)
+      const pageW = doc.internal.pageSize.getWidth()
 
+      // ── Header bar ──────────────────────────────────
+      doc.setFillColor(79,70,229)
+      doc.rect(0, 0, pageW, 28, 'F')
+
+      // Logo circle
+      doc.setFillColor(255,255,255)
+      doc.circle(20, 14, 8, 'F')
+      doc.setTextColor(79,70,229)
+      doc.setFontSize(10)
+      doc.setFont('helvetica','bold')
+      doc.text('AT', 17, 17)
+
+      // Title
+      doc.setTextColor(255,255,255)
+      doc.setFontSize(14)
+      doc.setFont('helvetica','bold')
+      doc.text('Anuradha Textile', 32, 11)
+      doc.setFontSize(9)
+      doc.setFont('helvetica','normal')
+      doc.text('4-Week KRA / KPI Score History Report', 32, 18)
+
+      // Date on right
+      doc.setFontSize(8)
+      doc.setTextColor(200,200,255)
+      doc.text(`Generated: ${format(new Date(),'dd MMM yyyy, HH:mm')}`, pageW - 14, 11, {align:'right'})
+      doc.text(`Score = ROUND(Actual / Planned × 100 − 100, 2)  ·  0 = perfect  ·  negative = tasks not done`, pageW - 14, 18, {align:'right'})
+
+      // ── Score legend ─────────────────────────────────
+      doc.setFillColor(248,249,255)
+      doc.rect(0, 28, pageW, 10, 'F')
+      doc.setFontSize(7.5)
+      doc.setFont('helvetica','bold')
+      doc.setTextColor(16,185,129)
+      doc.text('● 0.00 = All work done (perfect)', 14, 34)
+      doc.setTextColor(239,68,68)
+      doc.text('● Negative = Tasks not done / late', 90, 34)
+      doc.setTextColor(107,114,128)
+      doc.text(`● Benchmark: ${historyData[0]?.benchmark ?? 0}`, 180, 34)
+
+      // ── Table ─────────────────────────────────────────
       const names = getFilteredNames()
-      const head = [['Employee','Role','KPI',...[-3,-2,-1,0].map(w=>getWeekLabel(w).replace('\n','\n'))]]
+
+      // Build week headers with date ranges
+      const weekHeaders = [-3,-2,-1,0].map(w=>{
+        const label = w===0?'This Week':w===-1?'Last Week':`${Math.abs(w)} Weeks Ago`
+        const wkData = historyData[w+3]
+        const rows0 = wkData?.rows||[]
+        return label
+      })
+
+      const head = [[
+        {content:'Employee', styles:{halign:'left'}},
+        {content:'Role', styles:{halign:'left'}},
+        {content:'KPI', styles:{halign:'center'}},
+        ...weekHeaders.map((h,i)=>({
+          content: h,
+          styles:{
+            halign:'center',
+            fillColor: i===3?[79,70,229]:[55,48,163],
+            fontStyle:'bold'
+          }
+        }))
+      ]]
+
       const body:any[] = []
 
       names.forEach((name:string)=>{
         const emp = allEmps.find((e:any)=>e.name===name)
-        ;['% not done','% not on time'].forEach((kpi,ki)=>{
-          const scores = historyData.map((wk:any)=>{
-            const row=wk?.rows?.find((r:any)=>r.employee.name===name)
-            const v=ki===0?row?.currentWeek?.score1:row?.currentWeek?.score2
-            return v!=null?v.toFixed(2):'—'
+        ;[['% Work not done',0],['% Work not on time',1]].forEach(([kpi,ki]:any)=>{
+          const rowData = historyData.map((wk:any)=>{
+            const row = wk?.rows?.find((r:any)=>r.employee.name===name)
+            if(!row) return {score:'—', detail:''}
+            const score = ki===0?row.currentWeek.score1:row.currentWeek.score2
+            const planned = row.currentWeek.planned
+            const actual = ki===0?row.currentWeek.done:row.currentWeek.doneOnTime
+            return {
+              score: score!=null?score.toFixed(2):'—',
+              detail: planned>0?`${planned}p / ${actual}d`:''
+            }
           })
-          body.push([ki===0?name:'', ki===0?(emp?.role||''):'', kpi, ...scores])
+          body.push([
+            {content: ki===0?name:'', styles:{fontStyle:'bold', valign:'middle'}},
+            {content: ki===0?(emp?.role||''):'', styles:{textColor:[150,150,150]}},
+            {content: kpi, styles:{textColor:[107,114,128], fontSize:7}},
+            ...rowData.map((d:any,i:number)=>({
+              content: d.detail ? (d.score + ' | ' + d.detail) : d.score,
+              styles:{
+                halign:'center',
+                fontStyle:'bold',
+                fillColor: i===3?[245,247,255]:[255,255,255]
+              }
+            }))
+          ])
         })
+        // Spacer row between employees
+        body.push([{content:'', colSpan:7, styles:{fillColor:[240,242,255], cellPadding:1}}])
       })
 
       autoTable(doc,{
-        head, body,
-        startY: 28,
-        styles:{fontSize:8, cellPadding:4},
-        headStyles:{fillColor:[79,70,229], textColor:255, fontStyle:'bold'},
-        alternateRowStyles:{fillColor:[248,249,255]},
+        head: head as any,
+        body: body as any,
+        startY: 42,
+        styles:{fontSize:8, cellPadding:4, lineColor:[230,230,240], lineWidth:0.3},
+        headStyles:{fillColor:[55,48,163], textColor:255, fontStyle:'bold', fontSize:8},
+        columnStyles:{
+          0:{cellWidth:35, fontStyle:'bold'},
+          1:{cellWidth:28, textColor:[150,150,150]},
+          2:{cellWidth:32, textColor:[107,114,128]},
+          3:{cellWidth:'auto'},
+          4:{cellWidth:'auto'},
+          5:{cellWidth:'auto'},
+          6:{cellWidth:'auto', fillColor:[245,247,255]},
+        },
         didParseCell:(data:any)=>{
           if(data.section==='body' && data.column.index>=3){
-            const val = parseFloat(data.cell.raw)
+            const raw = String(data.cell.raw||'')
+            const val = parseFloat(raw.split('\n')[0])
             if(!isNaN(val)){
-              data.cell.styles.textColor = val<0?[239,68,68]:val===0?[16,185,129]:[107,114,128]
-              data.cell.styles.fontStyle = 'bold'
+              data.cell.styles.textColor = val<0?[220,38,38]:val===0?[5,150,105]:[107,114,128]
             }
           }
+          // Skip spacer rows styling
+          if(data.row.raw?.[0]?.colSpan===7){
+            data.cell.styles.cellPadding=1
+          }
+        },
+        // Footer
+        didDrawPage:(data:any)=>{
+          const pg = doc.getCurrentPageInfo().pageNumber
+          const total = doc.getNumberOfPages()
+          doc.setFontSize(7)
+          doc.setTextColor(180,180,180)
+          doc.text(`Anuradha Textile — Confidential  |  Page ${pg} of ${total}`, pageW/2, doc.internal.pageSize.getHeight()-6, {align:'center'})
         }
       })
 
-      doc.save(`Anuradha_History_${format(new Date(),'dd-MMM-yyyy')}.pdf`)
+      doc.save(`Anuradha_Textile_Report_${format(new Date(),'dd-MMM-yyyy')}.pdf`)
     })
   }
 
