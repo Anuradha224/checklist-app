@@ -222,7 +222,7 @@ export default function AdminPage(){
         </div>
 
         {/* Summary stats */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:10,marginBottom:14}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:10,marginBottom:10}}>
           {[
             {label:'Total Employees',val:emps.length,icon:'👥'},
             {label:'Total Tasks',val:tasks.length,icon:'📋'},
@@ -238,8 +238,8 @@ export default function AdminPage(){
         </div>
 
         {/* Employee score cards */}
-        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#9CA3AF',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:10}}>Employee Scorecards</div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:12}}>
+        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#9CA3AF',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:10,marginTop:0}}>Employee Scorecards</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:12,marginBottom:10}}>
           {filteredRows.map((row:any,i:number)=>(
             <div key={row.employee.id} className="card" style={{padding:'1rem',cursor:'pointer',transition:'transform 0.15s'}}
               onMouseEnter={(e:any)=>e.currentTarget.style.transform='translateY(-2px)'}
@@ -266,7 +266,7 @@ export default function AdminPage(){
         </div>
 
         {/* KPI Table */}
-        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#9CA3AF',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:8}}>
+        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#9CA3AF',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:10,marginTop:10}}>
           Current Week Score {search&&`— ${filteredRows.length} result${filteredRows.length!==1?'s':''}`}
         </div>
         <div className="card" style={{overflow:'hidden',marginBottom:14}}>
