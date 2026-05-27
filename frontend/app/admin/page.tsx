@@ -22,6 +22,8 @@ export default function AdminPage(){
   const [score,setScore]=useState<any>(null)
   const [bench,setBench]=useState(0)
   const [loading,setLoading]=useState(true)
+  const [lastSync,setLastSync]=useState<Date|null>(null)
+  const [syncing,setSyncing]=useState(false)
   const [search,setSearch]=useState('')
   const [empSearch,setEmpSearch]=useState('')
   const [taskFilterEmp,setTaskFilterEmp]=useState('all')
@@ -50,9 +52,20 @@ export default function AdminPage(){
       setEmps(e);setTasks(t);setScore(s);setBench(s.benchmark)
     }catch{router.replace('/')}
     setLoading(false)
+    setLastSync(new Date())
+    setSyncing(false)
   },[router])
 
   useEffect(()=>{load()},[load])
+
+  // Auto-refresh every 60 seconds
+  useEffect(()=>{
+    const interval = setInterval(()=>{
+      setSyncing(true)
+      load()
+    }, 60000)
+    return ()=>clearInterval(interval)
+  },[load])
 
   async function logout(){await fetch('/api/auth/logout',{method:'POST'});router.push('/')}
   async function addEmp(){
@@ -147,7 +160,19 @@ export default function AdminPage(){
           </div>
           <div>
             <div style={{fontWeight:800,fontSize:'0.95rem',color:'#111827'}}>Anuradha Textile</div>
-            <div style={{fontSize:'0.68rem',color:'#9CA3AF'}}>TaskFlow · {emps.length} employees · {tasks.length} tasks</div>
+            <div style={{fontSize:'0.68rem',color:'#9CA3AF',display:'flex',alignItems:'center',gap:5}}>
+              TaskFlow · {emps.length} employees · {tasks.length} tasks
+              {syncing
+                ? <span style={{color:'#4F46E5',display:'flex',alignItems:'center',gap:3}}>
+                    <span style={{width:6,height:6,borderRadius:'50%',background:'#4F46E5',display:'inline-block',animation:'spin 0.8s linear infinite'}}/>
+                    Syncing…
+                  </span>
+                : lastSync&&<span style={{color:'#10B981',display:'flex',alignItems:'center',gap:3}}>
+                    <span style={{width:6,height:6,borderRadius:'50%',background:'#10B981',display:'inline-block'}}/>
+                    Synced {lastSync.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}
+                  </span>
+              }
+            </div>
           </div>
         </div>
         <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
@@ -159,6 +184,7 @@ export default function AdminPage(){
           <button onClick={()=>router.push('/admin/bulk-tasks')} style={{padding:'7px 14px',borderRadius:99,border:'1.5px solid #7C3AED',background:'rgba(124,58,237,0.08)',color:'#7C3AED',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)'}}>⚡ Bulk Add Tasks</button>
           <button onClick={generateTasks} style={{padding:'7px 12px',borderRadius:99,border:'1.5px solid #F59E0B',background:'rgba(245,158,11,0.08)',color:'#D97706',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)'}}>⚙ Generate Tasks</button>
           <button onClick={()=>setModal('addTask')} style={{padding:'7px 14px',borderRadius:99,border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)',background:'linear-gradient(135deg,#4F46E5,#7C3AED)',color:'#fff',boxShadow:'0 3px 12px rgba(79,70,229,0.35)'}}>+ Task</button>
+          <button onClick={()=>{setSyncing(true);load()}} title="Refresh now" style={{width:32,height:32,borderRadius:99,border:'1.5px solid #E5E7EB',background:'#fff',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',color:'#9CA3AF'}}>↻</button>
           <button onClick={logout} style={{padding:'7px 12px',borderRadius:99,border:'1.5px solid #E5E7EB',background:'transparent',cursor:'pointer',fontSize:'0.78rem',fontFamily:'var(--font)',color:'#9CA3AF'}}>Sign out</button>
         </div>
       </div>
