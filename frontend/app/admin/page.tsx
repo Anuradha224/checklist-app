@@ -43,26 +43,26 @@ export default function AdminPage(){
   const [saving,setSaving]=useState(false)
   const [err,setErr]=useState('')
 
-  const load=useCallback(async()=>{
-    setLoading(true)
+  const load=useCallback(async(silent=false)=>{
+    if(!silent) setLoading(true)
     try{
       const me=await fetch('/api/auth/me').then(r=>r.json())
       if(me.role!=='admin'){router.replace('/');return}
       const [e,t,s]=await Promise.all([api('/api/employees'),api('/api/tasks'),api('/api/score?week=0')])
       setEmps(e);setTasks(t);setScore(s);setBench(s.benchmark)
-    }catch{router.replace('/')}
-    setLoading(false)
+    }catch{if(!silent) router.replace('/')}
+    if(!silent) setLoading(false)
     setLastSync(new Date())
     setSyncing(false)
   },[router])
 
   useEffect(()=>{load()},[load])
 
-  // Auto-refresh every 60 seconds
+  // Auto-refresh every 60 seconds — silent (no loading screen)
   useEffect(()=>{
     const interval = setInterval(()=>{
       setSyncing(true)
-      load()
+      load(true) // silent=true keeps current data visible
     }, 60000)
     return ()=>clearInterval(interval)
   },[load])
@@ -184,7 +184,7 @@ export default function AdminPage(){
           <button onClick={()=>router.push('/admin/bulk-tasks')} style={{padding:'7px 14px',borderRadius:99,border:'1.5px solid #7C3AED',background:'rgba(124,58,237,0.08)',color:'#7C3AED',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)'}}>⚡ Bulk Add Tasks</button>
           <button onClick={generateTasks} style={{padding:'7px 12px',borderRadius:99,border:'1.5px solid #F59E0B',background:'rgba(245,158,11,0.08)',color:'#D97706',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)'}}>⚙ Generate Tasks</button>
           <button onClick={()=>setModal('addTask')} style={{padding:'7px 14px',borderRadius:99,border:'none',cursor:'pointer',fontSize:'0.78rem',fontWeight:700,fontFamily:'var(--font)',background:'linear-gradient(135deg,#4F46E5,#7C3AED)',color:'#fff',boxShadow:'0 3px 12px rgba(79,70,229,0.35)'}}>+ Task</button>
-          <button onClick={()=>{setSyncing(true);load()}} title="Refresh now" style={{width:32,height:32,borderRadius:99,border:'1.5px solid #E5E7EB',background:'#fff',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',color:'#9CA3AF'}}>↻</button>
+          <button onClick={()=>{setSyncing(true);load(true)}} title="Refresh now" style={{width:32,height:32,borderRadius:99,border:'1.5px solid #E5E7EB',background:'#fff',cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',color:'#9CA3AF'}}>↻</button>
           <button onClick={logout} style={{padding:'7px 12px',borderRadius:99,border:'1.5px solid #E5E7EB',background:'transparent',cursor:'pointer',fontSize:'0.78rem',fontFamily:'var(--font)',color:'#9CA3AF'}}>Sign out</button>
         </div>
       </div>
