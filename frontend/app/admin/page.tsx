@@ -231,9 +231,8 @@ export default function AdminPage(){
             </div>
           ))}
         </div>
-      </div>}
 
-                {/* KPI Table */}
+        {/* KPI Table */}
         <div style={{fontSize:'0.72rem',fontWeight:700,color:'#9CA3AF',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:8}}>
           Current Week Score {search&&`— ${filteredRows.length} result${filteredRows.length!==1?'s':''}`}
         </div>
@@ -298,6 +297,7 @@ export default function AdminPage(){
           </div>
         </div>
 
+      </div>}
 
       {/* EMPLOYEES */}
       {tab==='employees'&&<div className="fu2">
