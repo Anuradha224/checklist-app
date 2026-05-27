@@ -177,14 +177,21 @@ export default function AdminPage(){
       {/* DASHBOARD */}
       {tab==='dashboard'&&<div className="fu2">
 
-        {/* Search bar */}
+        {/* Search bar with employee dropdown */}
         <div style={{position:'relative',marginBottom:14}}>
-          <span style={{position:'absolute',left:14,top:'50%',transform:'translateY(-50%)',color:'#9CA3AF',fontSize:16}}>🔍</span>
-          <input placeholder="Search employee by name or role…" value={search} onChange={e=>setSearch(e.target.value)}
+          <span style={{position:'absolute',left:14,top:'50%',transform:'translateY(-50%)',color:'#9CA3AF',fontSize:16,zIndex:1}}>🔍</span>
+          <input
+            list="emp-list-dash"
+            placeholder="Search employee by name or role…"
+            value={search}
+            onChange={e=>setSearch(e.target.value)}
             style={{width:'100%',padding:'10px 14px 10px 38px',borderRadius:12,border:'1.5px solid #E5E7EB',background:'#fff',fontSize:'0.875rem',fontFamily:'var(--font)',outline:'none'}}
             onFocus={(e:any)=>e.target.style.borderColor='#4F46E5'}
             onBlur={(e:any)=>e.target.style.borderColor='#E5E7EB'}
           />
+          <datalist id="emp-list-dash">
+            {emps.map((e:any)=><option key={e.id} value={e.name}>{e.name}{e.role?' — '+e.role:''}</option>)}
+          </datalist>
           {search&&<button onClick={()=>setSearch('')} style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:'#9CA3AF',fontSize:16}}>✕</button>}
         </div>
 
@@ -306,10 +313,17 @@ export default function AdminPage(){
           <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'center',flexWrap:'wrap'}}>
             <div style={{position:'relative',flex:1,minWidth:200}}>
               <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'#9CA3AF',fontSize:13}}>🔍</span>
-              <input placeholder="Search employee by name or role…" value={empSearch} onChange={e=>setEmpSearch(e.target.value)}
+              <input
+                list="emp-list-tab"
+                placeholder="Search employee by name or role…"
+                value={empSearch}
+                onChange={e=>setEmpSearch(e.target.value)}
                 style={{width:'100%',padding:'8px 10px 8px 30px',borderRadius:10,border:'1.5px solid #E5E7EB',background:'#fff',fontSize:'0.82rem',fontFamily:'var(--font)',outline:'none',transition:'border-color 0.2s'}}
                 onFocus={(e:any)=>e.target.style.borderColor='#4F46E5'}
                 onBlur={(e:any)=>e.target.style.borderColor='#E5E7EB'}/>
+              <datalist id="emp-list-tab">
+                {emps.map((e:any)=><option key={e.id} value={e.name}>{e.name}{e.role?' — '+e.role:''}</option>)}
+              </datalist>
               {empSearch&&<button onClick={()=>setEmpSearch('')} style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:'#9CA3AF',fontSize:14}}>✕</button>}
             </div>
             <span style={{fontSize:'0.75rem',color:'#9CA3AF',flexShrink:0}}>
@@ -373,10 +387,17 @@ export default function AdminPage(){
           {/* Search */}
           <div style={{position:'relative',flex:1,minWidth:180}}>
             <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'#9CA3AF',fontSize:13}}>🔍</span>
-            <input placeholder="Search task name…" value={taskSearch} onChange={e=>setTaskSearch(e.target.value)}
+            <input
+              list="task-name-list"
+              placeholder="Search task name…"
+              value={taskSearch}
+              onChange={e=>setTaskSearch(e.target.value)}
               style={{width:'100%',padding:'8px 10px 8px 30px',borderRadius:10,border:'1.5px solid #E5E7EB',background:'#fff',fontSize:'0.82rem',fontFamily:'var(--font)',outline:'none',transition:'border-color 0.2s'}}
               onFocus={(e:any)=>e.target.style.borderColor='#4F46E5'}
               onBlur={(e:any)=>e.target.style.borderColor='#E5E7EB'}/>
+            <datalist id="task-name-list">
+              {[...new Set(tasks.map((t:any)=>t.name))].map((name:any)=><option key={name} value={name}/>)}
+            </datalist>
             {taskSearch&&<button onClick={()=>setTaskSearch('')} style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:'#9CA3AF',fontSize:14}}>✕</button>}
           </div>
           {/* Employee filter */}
